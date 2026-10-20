@@ -1,0 +1,3 @@
+exports[`UniverseList > matches the screenshot 1`] = `
+"  ADDR   NET.SUB.UNI  FROM                 ADAPTER        FPS   LAST     STATUS\\n  0      0.0.0        2.0.0.12             Ethernet       0     20.0s    gone\\n  17     0.1.1        2.0.0.10 +1          Ethernet       0     3.0s     stale\\n> 529    2.1.1        2.0.0.10             Ethernet       1     0.1s     live"
+`;
