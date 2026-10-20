@@ -10,6 +10,8 @@ import type { Adapter } from '../net/adapters.ts';
 import { AdapterList } from './adapter-list.tsx';
 import { ChannelGrid } from './channel-grid.tsx';
 import { adapterNameFor, formatNetSubUni, formatSources } from './format.ts';
+import { sceneModeOf } from './scene.ts';
+import { SceneView } from './scene-view.tsx';
 import { resolveSelection, stepSelection } from './selection.ts';
 import type { Selection } from './selection.ts';
 import { DEFAULT_THEME } from './theme.ts';
@@ -122,6 +124,12 @@ export const App = ({
           listening on {address}:{ARTNET_PORT}
         </Text>
       </Box>
+      <SceneView
+        mode={sceneModeOf(universes, now)}
+        now={now}
+        width={columns}
+        theme={DEFAULT_THEME}
+      />
       <AdapterList
         adapters={adapters}
         universes={universes}
