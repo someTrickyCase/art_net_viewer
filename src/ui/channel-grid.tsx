@@ -1,4 +1,3 @@
-import { Chalk } from 'chalk';
 import { Box, Text } from 'ink';
 import type { ReactElement } from 'react';
 
@@ -6,10 +5,8 @@ import { MAX_CHANNELS } from '../protocol/art-dmx.ts';
 import { cellText, colorFor } from './cell.ts';
 import { LABEL_WIDTH, layoutFor } from './grid-layout.ts';
 import type { GridLayout } from './grid-layout.ts';
+import { paint } from './paint.ts';
 import type { Theme } from './theme.ts';
-
-const TRUECOLOR = 3;
-const paint = new Chalk({ level: TRUECOLOR });
 
 const GAP = ' ';
 

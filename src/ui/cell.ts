@@ -40,14 +40,16 @@ const toHexByte = (byte: number): string =>
 export const toHex = ({ r, g, b }: Rgb): string =>
   `#${[r, g, b].map(toHexByte).join('')}`;
 
-export const colorFor = (value: number, theme: Theme): string => {
-  if (value === 0) {
-    return theme.empty;
-  }
-  const amount = (value - 1) / (MAX_VALUE - 1);
-  return toHex({
+export const themeColorAt = (theme: Theme, amount: number): string =>
+  toHex({
     r: mix(theme.low.r, theme.high.r, amount),
     g: mix(theme.low.g, theme.high.g, amount),
     b: mix(theme.low.b, theme.high.b, amount),
   });
+
+export const colorFor = (value: number, theme: Theme): string => {
+  if (value === 0) {
+    return theme.empty;
+  }
+  return themeColorAt(theme, (value - 1) / (MAX_VALUE - 1));
 };

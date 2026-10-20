@@ -7,6 +7,7 @@ import {
   EMPTY_GLYPH,
   fillLevel,
   glyphFor,
+  themeColorAt,
   toHex,
 } from '../../src/ui/cell.ts';
 import { BLUE } from '../../src/ui/theme.ts';
@@ -56,6 +57,17 @@ describe('cellText', () => {
 describe('toHex', () => {
   it('writes each channel as two hex digits', () => {
     assert.equal(toHex({ r: 0, g: 10, b: 255 }), '#000aff');
+  });
+});
+
+describe('themeColorAt', () => {
+  it('goes from the low colour at 0 to the high colour at 1', () => {
+    assert.equal(themeColorAt(BLUE, 0), toHex(BLUE.low));
+    assert.equal(themeColorAt(BLUE, 1), toHex(BLUE.high));
+  });
+
+  it('mixes halfway at 0.5', () => {
+    assert.equal(themeColorAt(BLUE, 0.5), toHex({ r: 85, g: 138, b: 203 }));
   });
 });
 
