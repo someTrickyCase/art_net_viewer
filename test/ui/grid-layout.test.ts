@@ -31,6 +31,24 @@ describe('layoutFor', () => {
   it('always divides 512 channels into whole rows', () => {
     for (const columns of [30, 80, 100, 140, 200, 400]) {
       assert.equal(512 % layoutFor(columns).perRow, 0);
+      assert.equal(512 % layoutFor(columns, 'dmx').perRow, 0);
     }
+  });
+
+  it('uses the fill layout by default', () => {
+    assert.deepEqual(layoutFor(140), layoutFor(140, 'fill'));
+  });
+});
+
+describe('layoutFor with numbers', () => {
+  it('gives every number 3 digits and a gap', () => {
+    assert.equal(layoutFor(140, 'dmx').cellWidth, 4);
+    assert.equal(layoutFor(140, 'percent').cellWidth, 4);
+  });
+
+  it('puts fewer channels per row than the fill view', () => {
+    assert.deepEqual(layoutFor(100, 'dmx'), { perRow: 16, cellWidth: 4 });
+    assert.deepEqual(layoutFor(140, 'dmx'), { perRow: 32, cellWidth: 4 });
+    assert.deepEqual(layoutFor(300, 'dmx'), { perRow: 64, cellWidth: 4 });
   });
 });

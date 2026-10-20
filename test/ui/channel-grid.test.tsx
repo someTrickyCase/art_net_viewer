@@ -22,7 +22,12 @@ const plainLines = (frame: string | undefined): string[] =>
 describe('ChannelGrid', () => {
   it('draws 16 rows of 32 channels at 100 columns', () => {
     const { lastFrame, unmount } = render(
-      <ChannelGrid data={fullUniverse()} columns={100} theme={BLUE} />,
+      <ChannelGrid
+        data={fullUniverse()}
+        columns={100}
+        theme={BLUE}
+        view="fill"
+      />,
     );
     const lines = plainLines(lastFrame());
     assert.equal(lines.length, 16);
@@ -34,7 +39,12 @@ describe('ChannelGrid', () => {
 
   it('fills each cell by value: full block, bars and underlines', () => {
     const { lastFrame, unmount } = render(
-      <ChannelGrid data={fullUniverse()} columns={100} theme={BLUE} />,
+      <ChannelGrid
+        data={fullUniverse()}
+        columns={100}
+        theme={BLUE}
+        view="fill"
+      />,
     );
     const firstRow = plainLines(lastFrame())[0] ?? '';
     const cells = firstRow.slice(4).match(/.{2}/gu) ?? [];
@@ -48,7 +58,12 @@ describe('ChannelGrid', () => {
 
   it('makes cells wider on a wider terminal', () => {
     const { lastFrame, unmount } = render(
-      <ChannelGrid data={fullUniverse()} columns={140} theme={BLUE} />,
+      <ChannelGrid
+        data={fullUniverse()}
+        columns={140}
+        theme={BLUE}
+        view="fill"
+      />,
     );
     const firstRow = plainLines(lastFrame())[0] ?? '';
     assert.ok(firstRow.startsWith(`  1 ${BAR_6}${BAR_6} `));
@@ -61,6 +76,7 @@ describe('ChannelGrid', () => {
         data={Uint8Array.from([255, 255])}
         columns={100}
         theme={BLUE}
+        view="fill"
       />,
     );
     const lines = plainLines(lastFrame());
@@ -71,9 +87,59 @@ describe('ChannelGrid', () => {
     unmount();
   });
 
+  it('shows right-aligned DMX values in the dmx view', () => {
+    const { lastFrame, unmount } = render(
+      <ChannelGrid
+        data={fullUniverse()}
+        columns={100}
+        theme={BLUE}
+        view="dmx"
+      />,
+    );
+    const lines = plainLines(lastFrame());
+    assert.equal(lines.length, 32);
+    assert.ok((lines[0] ?? '').startsWith('  1 182  99   0   0 255   0 242'));
+    assert.match(lines[1] ?? '', /^ 17 /u);
+    unmount();
+  });
+
+  it('shows percent in the percent view', () => {
+    const { lastFrame, unmount } = render(
+      <ChannelGrid
+        data={fullUniverse()}
+        columns={100}
+        theme={BLUE}
+        view="percent"
+      />,
+    );
+    const firstRow = plainLines(lastFrame())[0] ?? '';
+    assert.ok(
+      firstRow.startsWith('  1  71  39   0   0 100   0  95  10   0   5'),
+    );
+    unmount();
+  });
+
+  it('matches the dmx screenshot', (t) => {
+    const { lastFrame, unmount } = render(
+      <ChannelGrid
+        data={fullUniverse()}
+        columns={100}
+        theme={BLUE}
+        view="dmx"
+      />,
+    );
+    t.assert.snapshot(lastFrame());
+    unmount();
+  });
+
   it('matches the colour screenshot', (t) => {
     const { lastFrame, unmount } = render(
-      <ChannelGrid data={fullUniverse()} columns={100} theme={BLUE} />,
+      <ChannelGrid
+        data={fullUniverse()}
+        columns={100}
+        theme={BLUE}
+        view="fill"
+      />,
     );
     t.assert.snapshot(lastFrame());
     unmount();

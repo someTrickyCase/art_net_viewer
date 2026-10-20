@@ -9,12 +9,16 @@ import type { UniverseState, UniverseStore } from '../state/universe-store.ts';
 import type { Adapter } from '../net/adapters.ts';
 import { AdapterList } from './adapter-list.tsx';
 import { ChannelGrid } from './channel-grid.tsx';
+import { nextInCycle } from './cycle.ts';
+import { LEVEL_VIEW_LABELS, LEVEL_VIEWS } from './level-view.ts';
+import type { LevelView } from './level-view.ts';
 import { adapterNameFor, formatNetSubUni, formatSources } from './format.ts';
 import { sceneModeOf } from './scene.ts';
 import { SceneView } from './scene-view.tsx';
 import { resolveSelection, stepSelection } from './selection.ts';
 import type { Selection } from './selection.ts';
-import { DEFAULT_THEME } from './theme.ts';
+import { DEFAULT_THEME, THEMES } from './theme.ts';
+import type { Theme } from './theme.ts';
 import { UniverseList } from './universe-list.tsx';
 import { useAdapters } from './use-adapters.ts';
 import type { AdapterReader } from './use-adapters.ts';
@@ -46,31 +50,47 @@ const useColumns = (): number => {
 
 const LEFT_ARROW = 0x2190;
 const RIGHT_ARROW = 0x2192;
-const HELP = [
-  String.fromCodePoint(LEFT_ARROW),
-  String.fromCodePoint(RIGHT_ARROW),
-  'universe   q quit',
-].join(' ');
+const ARROWS = [LEFT_ARROW, RIGHT_ARROW]
+  .map((code) => String.fromCodePoint(code))
+  .join(' ');
+const HELP_GAP = '   ';
+
+export const helpLine = (theme: Theme, view: LevelView): string =>
+  [
+    `${ARROWS} universe`,
+    `t theme: ${theme.name}`,
+    `v levels: ${LEVEL_VIEW_LABELS[view]}`,
+    'q quit',
+  ].join(HELP_GAP);
 
 interface UniverseViewProps {
   readonly state: UniverseState;
   readonly adapters: readonly Adapter[];
   readonly columns: number;
+  readonly theme: Theme;
+  readonly view: LevelView;
 }
 
 const UniverseView = ({
   state,
   adapters,
   columns,
+  theme,
+  view,
 }: UniverseViewProps): ReactElement => (
   <Box width={columns} justifyContent="center" marginTop={1}>
     <Box flexDirection="column">
-      <Text bold color={DEFAULT_THEME.accent}>
+      <Text bold color={theme.accent}>
         Universe {state.portAddress} ({formatNetSubUni(state)}) from{' '}
         {formatSources(state.sources)} on{' '}
         {adapterNameFor(adapters, state.sources)}
       </Text>
-      <ChannelGrid data={state.data} columns={columns} theme={DEFAULT_THEME} />
+      <ChannelGrid
+        data={state.data}
+        columns={columns}
+        theme={theme}
+        view={view}
+      />
     </Box>
   </Box>
 );
@@ -94,6 +114,8 @@ export const App = ({
   const { snapshot, now } = useSnapshot(store, clock, SNAPSHOT_INTERVAL_MS);
   const adapters = useAdapters(readAdapters, ADAPTER_REFRESH_MS);
   const [selected, setSelected] = useState<Selection>(null);
+  const [theme, setTheme] = useState<Theme>(DEFAULT_THEME);
+  const [view, setView] = useState<LevelView>('fill');
 
   const { universes } = snapshot;
   const addresses = universes.map((state) => state.portAddress);
@@ -104,6 +126,14 @@ export const App = ({
     (input, key) => {
       if (input === 'q') {
         exit();
+        return;
+      }
+      if (input === 't') {
+        setTheme((previous) => nextInCycle(THEMES, previous));
+        return;
+      }
+      if (input === 'v') {
+        setView((previous) => nextInCycle(LEVEL_VIEWS, previous));
         return;
       }
       const step = stepFor(key);
@@ -117,7 +147,7 @@ export const App = ({
   return (
     <Box flexDirection="column">
       <Box gap={1}>
-        <Text bold color={DEFAULT_THEME.accent}>
+        <Text bold color={theme.accent}>
           art-net-viewer
         </Text>
         <Text dimColor>
@@ -128,13 +158,9 @@ export const App = ({
         mode={sceneModeOf(universes, now)}
         now={now}
         width={columns}
-        theme={DEFAULT_THEME}
+        theme={theme}
       />
-      <AdapterList
-        adapters={adapters}
-        universes={universes}
-        theme={DEFAULT_THEME}
-      />
+      <AdapterList adapters={adapters} universes={universes} theme={theme} />
       {universes.length === 0 ? (
         <Text dimColor>No Art-Net yet...</Text>
       ) : (
@@ -146,9 +172,15 @@ export const App = ({
         />
       )}
       {shown === undefined ? null : (
-        <UniverseView state={shown} adapters={adapters} columns={columns} />
+        <UniverseView
+          state={shown}
+          adapters={adapters}
+          columns={columns}
+          theme={theme}
+          view={view}
+        />
       )}
-      <Text dimColor>{HELP}</Text>
+      <Text dimColor>{helpLine(theme, view)}</Text>
     </Box>
   );
 };
