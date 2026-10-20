@@ -95,6 +95,52 @@ describe('App', () => {
     unmount();
   });
 
+  it('shows the keys, the theme and the level view in the help line', () => {
+    const { lastFrame, unmount } = renderApp(createUniverseStore());
+    assert.match(
+      lastFrame() ?? '',
+      /universe {3}t theme: olive {3}v levels: fill {3}q quit/u,
+    );
+    unmount();
+  });
+
+  it('switches themes with t and wraps around', async () => {
+    const { lastFrame, stdin, unmount } = renderApp(createUniverseStore());
+    await sleep(SNAPSHOT_INTERVAL_MS);
+    const seen = [];
+    for (let press = 0; press < 6; press++) {
+      stdin.write('t');
+      await sleep(SNAPSHOT_INTERVAL_MS);
+      seen.push(/theme: (\w+)/u.exec(lastFrame() ?? '')?.[1]);
+    }
+    assert.deepEqual(seen, [
+      'amber',
+      'blue',
+      'red',
+      'magenta',
+      'mono',
+      'olive',
+    ]);
+    unmount();
+  });
+
+  it('switches the level view with v', async () => {
+    const store = createUniverseStore();
+    store.update(makeFrame({ portAddress: 17 }), '2.0.0.10', 900);
+    const { lastFrame, stdin, unmount } = renderApp(store);
+    await sleep(SNAPSHOT_INTERVAL_MS);
+    stdin.write('v');
+    await sleep(SNAPSHOT_INTERVAL_MS);
+    assert.match(lastFrame() ?? '', /v levels: dmx/u);
+    stdin.write('v');
+    await sleep(SNAPSHOT_INTERVAL_MS);
+    assert.match(lastFrame() ?? '', /v levels: %/u);
+    stdin.write('v');
+    await sleep(SNAPSHOT_INTERVAL_MS);
+    assert.match(lastFrame() ?? '', /v levels: fill/u);
+    unmount();
+  });
+
   it('matches the screenshot with no Art-Net', (t) => {
     const { lastFrame, unmount } = renderApp(createUniverseStore());
     t.assert.snapshot(lastFrame());
